@@ -1,0 +1,3 @@
+[submodule "drallo-multiplayer-messages"]
+	path = drallo-multiplayer-messages
+	url = git@github.com:ChallengeEarth/drallo-multiplayer-messages.git

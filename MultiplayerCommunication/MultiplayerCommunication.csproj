@@ -51,8 +51,17 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\portable-net45+wp80+win8+wpa81+dnxcore50\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Messages">
+      <HintPath>..\..\..\testProjects\dralloMultiPlayer\Messages\Messages\obj\Debug\Messages.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DralloChallengeEngine\ChallengeEngine\ChallengeEngine.csproj">
+      <Project>{A2BBC125-A760-4D1E-BA6B-D5A37F590C3B}</Project>
+      <Name>ChallengeEngine</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
