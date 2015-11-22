@@ -6,6 +6,7 @@ using Messages;
 using System.Collections.Generic;
 using Drallo.ChallengeEngine.Activity.Record;
 using Drallo.ChallengeEngine.Activity.Event;
+using dralloMultiPlayer.Messages;
 
 namespace WebsocketTest
 {
