@@ -2,17 +2,15 @@
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using Messages;
 using System.Collections.Generic;
 using Drallo.ChallengeEngine.Activity.Record;
 using Drallo.ChallengeEngine.Activity.Event;
-using dralloMultiPlayer.Messages;
+using Drallo.MultiPlayer.Messages;
 
-namespace WebsocketTest
+namespace MultiplayerCommunication
 {
-	public class ConnectionController
+	public class MultiplayerCommunicationController
 	{
-		private string connectionUri;
 		private string userName;
 
 		public event Action<string> Closed;
@@ -26,9 +24,8 @@ namespace WebsocketTest
 		ConnectionService connectionService;
 		private JsonSerializerSettings jsonSerializerSettings;
 
-		public ConnectionController (string connectionUri, string userName = "Randy")
+		public MultiplayerCommunicationController (string connectionUri, string userName = "Randy")
 		{
-			this.connectionUri = connectionUri;
 			this.userName = userName;
 			connectionService = new ConnectionService (connectionUri);
 			connectionService.Closed += OnConnectionClosed;
@@ -45,30 +42,33 @@ namespace WebsocketTest
 		{
 			try {
 				await connectionService.Connect ();
+				Debug.WriteLine("Connected To Multiplayer-Server");
 			} catch (Exception e) {
 
-				Debug.WriteLine ("could not connect: " + e.Message);
+				Debug.WriteLine("could not connect: " + e.Message);
 			}
 		}
 
-		private async Task Send (string msg)
+		public async Task Send (string msg)
 		{
 			try {
 				Debug.WriteLine ("--------> send: " + msg);
 				await connectionService.Send (msg);
 			} catch (Exception e) {
-				Debug.WriteLine ("exception in Send() happened:  " + e.Message);
+				Debug.WriteLine("exception in Send() happened:  " + e.Message);
 			}
 		}
 
 		public async Task Send (ActivityRecord input)
 		{
+			Debug.WriteLine("Send Activity-Record To Multiplayer-Server", input);
 			string message = JsonConvert.SerializeObject (input, jsonSerializerSettings);
 			await Send (message);
 		}
 
 		public async Task Send (ActivityEvent input)
 		{
+			Debug.WriteLine("Send Activity-Event To Multiplayer-Server", input);
 			string message = JsonConvert.SerializeObject (input, jsonSerializerSettings);
 			await Send (message);
 		}
@@ -80,9 +80,9 @@ namespace WebsocketTest
 				var registerMsg = new RegisterMessage (deviceId, multiplayerChallengeId);
 				string message = JsonConvert.SerializeObject (registerMsg, jsonSerializerSettings);
 				await connectionService.Send (message);
-				Debug.WriteLine ("sent register message: " + message);
+				Debug.WriteLine("sent register message: " + message);
 			} catch (Exception e) {
-				Debug.WriteLine ("registering failed: " + e.Message);
+				Debug.WriteLine("registering failed: " + e.Message);
 			}
 		}
 
@@ -92,9 +92,9 @@ namespace WebsocketTest
 				var deregisterMsg = new DeregisterMessage (deviceId, multiplayerChallengeId);
 				string message = JsonConvert.SerializeObject (deregisterMsg, jsonSerializerSettings);
 				await connectionService.Send (message);
-				Debug.WriteLine ("sent deregister message");
+				Debug.WriteLine("sent deregister message");
 			} catch (Exception e) {
-				Debug.WriteLine ("Deregistering failed: " + e.Message);
+				Debug.WriteLine("Deregistering failed: " + e.Message);
 			}
 		}
 
@@ -104,15 +104,15 @@ namespace WebsocketTest
 				var joinMsg = new JoinMessage (userName, multiplayerChallengeId);
 				string message = JsonConvert.SerializeObject (joinMsg, jsonSerializerSettings);
 				await connectionService.Send (message);
-				Debug.WriteLine ("sent join message");
+				Debug.WriteLine("sent join message");
 			} catch (Exception e) {
-				Debug.WriteLine ("Joining failed: " + e.Message);
+				Debug.WriteLine("Joining failed: " + e.Message);
 			}
 		}
 		private void OnMessageReceived (string message)
 		{ 
 			object receivedObject;
-			Debug.WriteLine ("<--------- received message:   " + message);
+			Debug.WriteLine("<--------- received message:   " + message);
 			try {
 				receivedObject = JsonConvert.DeserializeObject (message, jsonSerializerSettings);
 			} catch (JsonSerializationException serializationException) {
@@ -128,12 +128,12 @@ namespace WebsocketTest
 					}, { 
 						typeof(JoinAcceptMessage), () => {
 							JoinAcceptedReceived ("join accepted: " + receivedObject.ToString ());
-							Debug.WriteLine ("RECEIVED JOIN ACCEPT");
+							Debug.WriteLine("RECEIVED JOIN ACCEPT");
 						} 
 					}, { 
 						typeof(JoinRejectMessage), () => {
 							JoinRejectedReceived ("join rejected: " + receivedObject.ToString ());
-							Debug.WriteLine ("RECEIVED JOIN REJECT");
+							Debug.WriteLine("RECEIVED JOIN REJECT");
 						} 
 					},
 				};
@@ -173,7 +173,7 @@ namespace WebsocketTest
 		{
 			if (Error != null)
 				Error (e);
-			Debug.WriteLine ("Error occured: " + e.Message);
+			Debug.WriteLine("Error occured: " + e.Message);
 		}
 
 	}

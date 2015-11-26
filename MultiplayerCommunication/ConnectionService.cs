@@ -2,9 +2,9 @@
 using Microsoft.AspNet.SignalR.Client;
 using System.Threading.Tasks;
 
-namespace WebsocketTest
+namespace MultiplayerCommunication
 {
-	public class ConnectionService
+	internal class ConnectionService
 	{
 		public event Action<string> Received;
 		public event Action<Exception> Error;
