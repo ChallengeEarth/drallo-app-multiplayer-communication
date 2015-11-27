@@ -71,18 +71,22 @@ namespace MultiplayerCommunication
 			}
 		}
 
-		public async Task Send(ActivityRecord input)
+		public async Task Send(ActivityRecord activityRecord)
 		{
-			Debug.WriteLine("Send Activity-Record To Multiplayer-Server", input);
-			string message = JsonConvert.SerializeObject(input, jsonSerializerSettings);
-			await Send(message);
+			var message = new ActivityRecordMessage(activityRecord);
+			var jsonMessage = JsonConvert.SerializeObject(message, jsonSerializerSettings);
+
+			Debug.WriteLine("Send Activity-Record To Multiplayer-Server", message);
+			await Send(jsonMessage);
 		}
 
-		public async Task Send(ActivityEvent input)
+		public async Task Send(ActivityEvent activityEvent)
 		{
-			Debug.WriteLine("Send Activity-Event To Multiplayer-Server", input);
-			string message = JsonConvert.SerializeObject(input, jsonSerializerSettings);
-			await Send(message);
+			var message = new ActivityEventMessage(activityEvent);
+			var jsonMessage = JsonConvert.SerializeObject(message, jsonSerializerSettings);
+
+			Debug.WriteLine("Send Activity-Event To Multiplayer-Server", jsonMessage);
+			await Send(jsonMessage);
 		}
 
 
