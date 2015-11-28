@@ -58,7 +58,7 @@ namespace MultiplayerCommunication
 			}
 		}
 
-		public async Task Send(string msg)
+		private async Task Send(string msg)
 		{
 			try
 			{
@@ -112,7 +112,8 @@ namespace MultiplayerCommunication
 				var deregisterMsg = new DeregisterMessage(deviceId, multiplayerChallengeId);
 				string message = JsonConvert.SerializeObject(deregisterMsg, jsonSerializerSettings);
 				await connectionService.Send(message);
-				Debug.WriteLine("sent deregister message");
+				TimeLineEntries.Clear();
+				Debug.WriteLine("sent deregister message and cleared TimelineEntries");
 			}
 			catch (Exception e)
 			{
@@ -212,7 +213,7 @@ namespace MultiplayerCommunication
 		{
 			if (Closed != null)
 				Closed("connection closed");
-			Debug.WriteLine("Closed Websocket");
+			Debug.WriteLine("Closed connection to Multiplayer Server");
 		}
 
 		private void OnConnectionError(Exception e)
