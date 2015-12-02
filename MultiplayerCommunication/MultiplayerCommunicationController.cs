@@ -7,6 +7,9 @@ using Drallo.ChallengeEngine.Activity.Record;
 using Drallo.ChallengeEngine.Activity.Event;
 using Drallo.MultiPlayer.Messages;
 using Drallo.ChallengeEngine.Feedback;
+using System.Collections.ObjectModel;
+using Drallo.ChallengeEngine.Feedback.Map;
+using Drallo.ChallengeEngine.Serialization;
 
 namespace MultiplayerCommunication
 {
@@ -23,7 +26,8 @@ namespace MultiplayerCommunication
 		public event Action Reconnecting;
 		public event Action Reconnected;
 
-		public List<TimeLineEntry> TimeLineEntries { get; set; }
+		public List<TimeLineEntry> TimeLineEntries { get; private set; }
+		public MapObjectContainer MapObjects { get; private set; }
 
 		ConnectionService connectionService;
 		private JsonSerializerSettings jsonSerializerSettings;
@@ -37,11 +41,13 @@ namespace MultiplayerCommunication
 			connectionService.Received += OnMessageReceived;
 			connectionService.Reconnecting += OnConnectionReconnecting;
 			connectionService.Reconnected += OnConnectionReconnected;
-			jsonSerializerSettings = new JsonSerializerSettings() {
-				TypeNameHandling = TypeNameHandling.All
-			};
+
+			jsonSerializerSettings = new JsonSerializerSettings();
+			jsonSerializerSettings.TypeNameHandling = TypeNameHandling.All;
+			jsonSerializerSettings.Converters.Add(new GeoConverter());
 
 			TimeLineEntries = new List<TimeLineEntry>();
+			MapObjects = new MapObjectContainer();
 		}
 
 		public async Task Connect()
@@ -176,6 +182,21 @@ namespace MultiplayerCommunication
 							TimeLineEntries.Add(timelineEntryMessage.TimeLineEntry);
 							TimeLineEntryReceived(timelineEntryMessage.TimeLineEntry);
 							Debug.WriteLine("TIMELINE-ENTRY RECEIVED");
+						} 
+					}, { 
+						typeof(ShowMapObjectMessage), () =>
+						{
+							ShowMapObjectMessage showMapObjectMessage = receivedObject as ShowMapObjectMessage;
+							MapObjects.Add(showMapObjectMessage.MapObject);
+							MapObjects.NotifyChanges();
+							Debug.WriteLine("Show Map Object Received");
+						} 
+					}, { 
+						typeof(HideMapObjectMessage), () =>
+						{
+							HideMapObjectMessage hideMapObjectMessage = receivedObject as HideMapObjectMessage;
+//							MapObjects.Remove(new IMapObject(hideMapObjectMessage.Id));
+							Debug.WriteLine("Hide Map Object Received");
 						} 
 					}
 				};
