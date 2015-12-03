@@ -26,11 +26,18 @@ namespace MultiplayerCommunication
 		public event Action Reconnecting;
 		public event Action Reconnected;
 
+		public event Action PlayerPositionsChanged;
+
 		public List<TimeLineEntry> TimeLineEntries { get; private set; }
 		public MapObjectContainer MapObjects { get; private set; }
+		public Dictionary<string, Tuple<double, double>> PlayerPositions { get; private set; }
 
 		ConnectionService connectionService;
 		private JsonSerializerSettings jsonSerializerSettings;
+
+		Guid currentRegisteredMultiplayerChallengeId;
+
+		string deviceId;
 
 		public MultiplayerCommunicationController(string connectionUri, string userName = "Randy")
 		{
@@ -48,6 +55,7 @@ namespace MultiplayerCommunication
 
 			TimeLineEntries = new List<TimeLineEntry>();
 			MapObjects = new MapObjectContainer();
+			PlayerPositions = new Dictionary<string, Tuple<double, double>>();
 		}
 
 		public async Task Connect()
@@ -63,6 +71,21 @@ namespace MultiplayerCommunication
 				Debug.WriteLine("could not connect: " + e.Message);
 			}
 		}
+
+		public void Disconnect()
+		{
+			try
+			{
+				connectionService.Disconnect();
+				Debug.WriteLine("Disconnected From Multiplayer-Server");
+			}
+			catch (Exception e)
+			{
+
+				Debug.WriteLine("could not disconnect: " + e.Message);
+			}
+		}
+
 
 		private async Task Send(string msg)
 		{
@@ -100,6 +123,10 @@ namespace MultiplayerCommunication
 		{
 			try
 			{
+
+				this.deviceId = deviceId;
+				this.currentRegisteredMultiplayerChallengeId = multiplayerChallengeId;
+
 				var registerMsg = new RegisterMessage(deviceId, multiplayerChallengeId);
 				string message = JsonConvert.SerializeObject(registerMsg, jsonSerializerSettings);
 				await connectionService.Send(message);
@@ -109,6 +136,13 @@ namespace MultiplayerCommunication
 			{
 				Debug.WriteLine("registering failed: " + e.Message);
 			}
+		}
+
+		public void DeregisterAndDisconnect() {
+			Deregister(deviceId, currentRegisteredMultiplayerChallengeId);
+			this.deviceId = null;
+			this.currentRegisteredMultiplayerChallengeId = Guid.Empty;
+			connectionService.Disconnect();
 		}
 
 		public async void Deregister(string deviceId, Guid multiplayerChallengeId)
@@ -195,8 +229,25 @@ namespace MultiplayerCommunication
 						typeof(HideMapObjectMessage), () =>
 						{
 							HideMapObjectMessage hideMapObjectMessage = receivedObject as HideMapObjectMessage;
-//							MapObjects.Remove(new IMapObject(hideMapObjectMessage.Id));
 							Debug.WriteLine("Hide Map Object Received");
+						} 
+					}, { 
+						typeof(LocationUpdateMessage), () =>
+						{
+							var locationUpdateMessage = receivedObject as LocationUpdateMessage;
+							var coordinates = new Tuple<double, double>(locationUpdateMessage.Latitude, locationUpdateMessage.Longitude);
+							PlayerPositions[locationUpdateMessage.UserName] = coordinates;
+
+							if(PlayerPositions != null) 
+							{
+								PlayerPositionsChanged();
+							}
+						} 
+					}, { 
+						typeof(ChallengeFinishedMessage), () =>
+						{
+							var challengeFinishedMessage = receivedObject as ChallengeFinishedMessage;
+							Debug.WriteLine("Challenge Finished Message Received");
 						} 
 					}
 				};

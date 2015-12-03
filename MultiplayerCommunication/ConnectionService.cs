@@ -33,6 +33,11 @@ namespace MultiplayerCommunication
 			await connection.Start();
 		}
 
+		public async void Disconnect() 
+		{
+			connection.Stop();
+		}
+
 		private void Connection_Received (string obj)
 		{
 			Received (obj);
